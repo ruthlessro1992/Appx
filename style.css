@@ -1,0 +1,28 @@
+:root {
+  --bg: #0a0a0a;
+  --panel: #141414;
+  --accent: #51ff00;
+  --cyan: #00e5ff;
+  --border: #333;
+  --text: #e0e0e0;
+}
+
+body { font-family: 'Fira Code', monospace; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Layout Logic */
+.top-bar { height: 60px; background: var(--panel); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid var(--border); }
+.main-layout { display: flex; flex: 1; overflow: hidden; }
+.sidebar { width: 70px; background: #0f0f0f; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; }
+.nav-item { cursor: pointer; font-size: 10px; color: #555; font-weight: bold; transition: 0.3s; }
+.nav-item.active { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+
+/* Views */
+.content { flex: 1; padding: 15px; overflow-y: auto; }
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* Terminal Styling */
+.terminal-container { background: #000; border: 1px solid var(--border); height: 75vh; padding: 10px; display: flex; flex-direction: column; border-radius: 5px; }
+.terminal-body { flex: 1; overflow-y: auto; font-size: 12px; color: var(--accent); white-space: pre-wrap; }
+.terminal-input-line { display: flex; gap: 8px; border

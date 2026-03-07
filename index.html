@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APPX Mobile Student Edition</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <div class="top-bar">
+      <div class="social-links">
+        <a href="#" class="social-icon fb">FB</a>
+        <a href="#" class="social-icon ig">IG</a>
+        <a href="#" class="social-icon x">X</a>
+        <a href="#" class="social-icon tk">TK</a>
+      </div>
+      <div class="search-box">
+        <input type="text" id="global-search" placeholder="Global OSINT Search...">
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <nav class="sidebar">
+        <div class="nav-item active" data-target="terminal">TERM</div>
+        <div class="nav-item" data-target="toolbox">TOOL</div>
+        <div class="nav-item" data-target="geo-tracker">MAP</div>
+        <div class="nav-item" data-target="ai-helper">CORE</div>
+        <div class="nav-item" data-target="settings">CONF</div>
+      </nav>
+
+      <main class="content">
+        <div id="terminal" class="view active">
+          <div class="terminal-container">
+            <div class="terminal-header">user@appx: ~ (zsh)</div>
+            <div class="terminal-body" id="terminal-output">
+              <pre class="ascii-logo">
+   _____ ____________  ___
+  /  _  \\______   \   \/  /
+ /  /_\  \|     ___/\     / 
+/    |    \    |    /     \ 
+\____|__  /____|   /___/\  \
+        \/               \_/ v1.0</pre>
+              <div class="system-msg">APPX Linux Kernel 6.1.0-calc initialized.</div>
+              <div class="system-msg">Type 'help' for pre-installed security packages.</div>
+            </div>
+            <div class="terminal-input-line">
+              <span class="prompt">user@appx:~$</span>
+              <input type="text" id="terminal-input" autofocus autocomplete="off">
+            </div>
+          </div>
+        </div>
+
+        <div id="toolbox" class="view">
+          <h2>Security Suite</h2>
+          <div class="tool-grid">
+            

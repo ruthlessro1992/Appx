@@ -1,0 +1,7 @@
+{
+  "name": "App0",
+  "description": "A mobile-optimized security and OSINT dashboard for students, featuring a terminal, security toolbox, and AI assistant.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

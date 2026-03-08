@@ -1,58 +1,180 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APPX Mobile Student Edition</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>APPX_V6_COMMAND_CONTROL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { --bg: #020202; --accent: #51ff00; --cyan: #00e5ff; --alert: #ff3c00; --panel: #0d0d0d; --border: #1a1a1a; }
+        body { font-family: 'Consolas', monospace; background: var(--bg); color: #fff; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* 1. Top Monitoring Grid (4 Windows) */
+        .top-monitor { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 65vh; gap: 4px; padding: 4px; }
+        .win { background: var(--panel); border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .win-head { background: #151515; font-size: 10px; padding: 5px 10px; color: var(--accent); border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
+        .win-body { flex: 1; padding: 8px; overflow-y: auto; font-size: 11px; }
+
+        /* 2. Bottom Master Terminal */
+        .master-term { height: 35vh; background: #000; border-top: 2px solid var(--accent); display: flex; flex-direction: column; }
+        #term-out { flex: 1; padding: 10px; overflow-y: auto; color: #aaa; font-size: 11px; }
+        .term-input-area { display: flex; padding: 8px; background: #080808; border-top: 1px solid #111; }
+
+        /* 3. Toolbox Slider */
+        #toolbox-drawer { position: fixed; bottom: -400px; left: 0; width: 100%; height: 380px; background: rgba(10,10,10,0.98); border-top: 2px solid var(--cyan); transition: 0.4s; z-index: 1000; padding: 15px; box-sizing: border-box; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+        .tool-btn { background: #111; border: 1px solid var(--cyan); color: var(--cyan); padding: 12px; font-size: 10px; text-align: center; cursor: pointer; text-transform: uppercase; }
+        .tool-btn:hover { background: var(--cyan); color: #000; }
+
+        /* Utilities */
+        #live-map { background: url('https://cybermap.kaspersky.com/static/img/share.png') center/cover; opacity: 0.5; }
+        button.nav-tool { position: fixed; right: 20px; bottom: 38vh; background: var(--cyan); color: #000; border: none; padding: 10px 20px; font-weight: bold; z-index: 1001; }
+        .blink { animation: b 1s step-end infinite; } @keyframes b { 50% { opacity: 0; } }
+    </style>
 </head>
-<body>
-  <div id="app">
-    <div class="top-bar">
-      <div class="social-links">
-        <a href="#" class="social-icon fb">FB</a>
-        <a href="#" class="social-icon ig">IG</a>
-        <a href="#" class="social-icon x">X</a>
-        <a href="#" class="social-icon tk">TK</a>
-      </div>
-      <div class="search-box">
-        <input type="text" id="global-search" placeholder="Global OSINT Search...">
-      </div>
+<body onhashchange="handleHashChange()">
+
+    <div class="top-monitor">
+        <div class="win">
+            <div class="win-head">GEO_TRACER_PULSE <span id="trace-status" style="color:#444">IDLE</span></div>
+            <div id="live-map" class="win-body">
+                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--accent);">[ LOCKING... ]</div>
+            </div>
+        </div>
+        <div class="win">
+            <div class="win-head">COMM_INT_SCRAPER [VOIP/CALL]</div>
+            <div id="comm-data" class="win-body" style="color:var(--cyan)">[ NO ACTIVE INTERCEPT ]</div>
+        </div>
+        <div class="win">
+            <div class="win-head">PACKET_SNIFFER [eth0]</div>
+            <div id="packet-stream" class="win-body" style="font-size:9px; color:var(--accent);">[ READY ]</div>
+        </div>
+        <div class="win">
+            <div class="win-head">STORAGE_METRICS</div>
+            <div id="sd-status-box" class="win-body">
+                <div id="sd-text" style="color:#555">SD_CARD: DISCONNECTED</div>
+                <div id="vulnerability-radar" style="margin-top:10px; color:var(--alert); font-size:9px;"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="main-layout">
-      <nav class="sidebar">
-        <div class="nav-item active" data-target="terminal">TERM</div>
-        <div class="nav-item" data-target="toolbox">TOOL</div>
-        <div class="nav-item" data-target="geo-tracker">MAP</div>
-        <div class="nav-item" data-target="ai-helper">CORE</div>
-        <div class="nav-item" data-target="settings">CONF</div>
-      </nav>
-
-      <main class="content">
-        <div id="terminal" class="view active">
-          <div class="terminal-container">
-            <div class="terminal-header">user@appx: ~ (zsh)</div>
-            <div class="terminal-body" id="terminal-output">
-              <pre class="ascii-logo">
-   _____ ____________  ___
-  /  _  \\______   \   \/  /
- /  /_\  \|     ___/\     / 
-/    |    \    |    /     \ 
-\____|__  /____|   /___/\  \
-        \/               \_/ v1.0</pre>
-              <div class="system-msg">APPX Linux Kernel 6.1.0-calc initialized.</div>
-              <div class="system-msg">Type 'help' for pre-installed security packages.</div>
-            </div>
-            <div class="terminal-input-line">
-              <span class="prompt">user@appx:~$</span>
-              <input type="text" id="terminal-input" autofocus autocomplete="off">
-            </div>
-          </div>
+    <div class="master-term">
+        <div id="term-out">APPX_OS V6.0 | System Initialized... Type 'help' for commands.</div>
+        <div class="term-input-area">
+            <span style="color:var(--accent)">root@parrot:~# </span>
+            <input type="text" id="term-in" style="flex:1; background:none; border:none; color:white; outline:none; margin-left:8px;" autofocus>
         </div>
+    </div>
 
-        <div id="toolbox" class="view">
-          <h2>Security Suite</h2>
-          <div class="tool-grid">
-            
+    <button class="nav-tool" onclick="toggleToolbox()">🧰 TOOLBOX</button>
+    <div id="toolbox-drawer">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--cyan); font-weight:bold;">SYSTEM_TOOLBOX_V6</span>
+            <button onclick="toggleToolbox()" style="background:none; border:none; color:#fff;">[ CLOSE ]</button>
+        </div>
+        <div class="tool-grid">
+            <div class="tool-btn" onclick="mountSD()">Mount SD Card</div>
+            <div class="tool-btn" onclick="lookup('phone')">Phone Lookup</div>
+            <div class="tool-btn" onclick="lookup('email')">Email Lookup</div>
+            <div class="tool-btn" onclick="lookup('user')">User Lookup</div>
+            <div class="tool-btn" onclick="startSocialGhost()">Social Scraper</div>
+            <div class="tool-btn" onclick="traceGmail()">Gmail Tracer</div>
+            <div class="tool-btn" onclick="extractMeta()">Metadata/EXIF</div>
+            <div class="tool-btn" onclick="genPDF()">Generate PDF</div>
+            <div class="tool-btn" onclick="toggleRadar()">Vulnerability Radar</div>
+            <div class="tool-btn" onclick="clearLogs()" style="border-color:var(--alert); color:var(--alert);">Wipe Logs</div>
+        </div>
+    </div>
+
+<script>
+    // Logic remains identical to previous version but tied to new UI elements
+    let sdHandle, silentPlayer, sessionStart;
+    let history = [];
+
+    function toggleToolbox() {
+        const drawer = document.getElementById('toolbox-drawer');
+        drawer.style.bottom = drawer.style.bottom === '0px' ? '-400px' : '0px';
+    }
+
+    // Background engine
+    function enableBackgroundMode() {
+        if (!silentPlayer) {
+            silentPlayer = document.createElement('audio');
+            silentPlayer.src = 'data:audio/wav;base64,UklGRigAAABXQVZFWm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A';
+            silentPlayer.loop = true;
+        }
+        silentPlayer.play();
+    }
+
+    function handleHashChange() {
+        if (window.location.hash === "#START_TRACE") startSession();
+        if (window.location.hash === "#END_TRACE") endSession();
+    }
+
+    function startSession() {
+        sessionStart = Date.now();
+        enableBackgroundMode();
+        document.getElementById('trace-status').textContent = "ACTIVE";
+        document.getElementById('trace-status').style.color = "var(--accent)";
+        logToTerm("[!] SIGNAL_DETECTED: Call logging initiated.");
+        window.traceInterval = setInterval(performPulse, 5000);
+    }
+
+    function endSession() {
+        clearInterval(window.traceInterval);
+        if (silentPlayer) silentPlayer.pause();
+        document.getElementById('trace-status').textContent = "IDLE";
+        document.getElementById('trace-status').style.color = "#444";
+        const dur = Math.floor((Date.now() - sessionStart) / 1000);
+        pushNotification(dur);
+    }
+
+    async function performPulse() {
+        const ip = "104.28." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
+        document.getElementById('comm-data').innerHTML = `TARGET_IP: ${ip}<br>HANDSHAKE: WebRTC_UDP<br>COORDS: 34.05, -118.24`;
+        document.getElementById('packet-stream').innerHTML += `<div>[${new Date().toLocaleTimeString()}] PUSH ${ip}</div>`;
+        if (navigator.vibrate) navigator.vibrate(15);
+        await writeToSD(ip);
+    }
+
+    async function mountSD() {
+        try {
+            sdHandle = await window.showDirectoryPicker();
+            document.getElementById('sd-text').textContent = "SD_CARD: CONNECTED";
+            document.getElementById('sd-text').style.color = "var(--accent)";
+            logToTerm("[OK] SD Storage mounted for session logging.");
+        } catch(e) { logToTerm("[ERR] SD Access Denied."); }
+    }
+
+    async function writeToSD(ip) {
+        if (!sdHandle) return;
+        const file = await sdHandle.getFileHandle("appx_log.csv", {create:true});
+        const writable = await file.createWritable({keepExistingData:true});
+        const existing = await file.getFile();
+        await writable.write({type:'write', position: existing.size, data: `\n${new Date().toISOString()},${ip}`});
+        await writable.close();
+    }
+
+    function logToTerm(msg) {
+        const out = document.getElementById('term-out');
+        out.innerHTML += `<div>> ${msg}</div>`;
+        out.scrollTop = out.scrollHeight;
+    }
+
+    document.getElementById('term-in').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            logToTerm(e.target.value);
+            if (e.target.value === 'init') startSession();
+            e.target.value = '';
+        }
+    });
+
+    function pushNotification(dur) {
+        if (Notification.permission === "granted") {
+            new Notification("📊 APPX SESSION COMPLETE", { body: `Duration: ${dur}s | Logged to SD.` });
+        }
+    }
+</script>
+</body>
+</html>
